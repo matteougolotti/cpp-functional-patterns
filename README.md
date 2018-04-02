@@ -37,7 +37,7 @@ The library implements several higher order functions to operate on collections
 // Map
 std::vector<int> positives { 1, 2, 3 };
 auto negative = fp::collection<int> { positives }
-               .map([] (int n) -> int) { return -n; }
+               .map([] (int n) -> int { return -n; })
                .vector();
 
 // Left reduce
