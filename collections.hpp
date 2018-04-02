@@ -17,40 +17,45 @@ static const int kMaxThreads = 4;
 
 // A collection of objects supporting functional patterns
 template <typename T>
-class Collection
+class collection
 {
   private:
     std::vector<T> _values;
 
   public:
     // Constructor for epty collection
-    Collection<T>() :
+    collection<T>() :
       _values{} {
     }
 
     // Empty collection of given size
-    Collection<T>(int size) :
+    collection<T>(int size) :
 	  _values{size} {
 	}
 
+	collection<T>(std::initializer_list<T> values) :
+	  _values{values} {
+
+	}
+
 	// Builds a collection from iterators
-	Collection<T>(std::iterator<std::input_iterator_tag, int> const& begin,
+	collection<T>(std::iterator<std::input_iterator_tag, int> const& begin,
 	              std::iterator<std::input_iterator_tag, int> const& end) :
 	  _values{begin, end} {
 	}
 
 	// Vector constructor
-	Collection<T>(std::vector<T> const& v) :
+	collection<T>(std::vector<T> const& v) :
 	  _values{v} {
 	}
 
 	// List constructor
-	Collection<T>(std::list<T> const& v) :
+	collection<T>(std::list<T> const& v) :
 	  _values{v.begin(), v.end()} {
 	}
 
 	// C-style array constructor
-	Collection<T>(T d[], int len) {
+	collection<T>(T d[], int len) {
 	  _values.assign(d, d + len);
 	}
 
@@ -60,7 +65,7 @@ class Collection
 	}
 
 	// Overload operator ==
-	bool operator==(Collection<T> const& other) const {
+	bool operator==(collection<T> const& other) const {
 	  return _values == other._values;
 	};
 
@@ -75,7 +80,7 @@ class Collection
 	}
 
 	// Overload the << operator
-	friend std::ostream &operator<<(std::ostream &stream, Collection<T> const& f) {
+	friend std::ostream &operator<<(std::ostream &stream, collection<T> const& f) {
 	  stream << "[";
 
 	  for (int i = 0; i < f._values.size() - 1; i++) {
@@ -96,32 +101,32 @@ class Collection
 	T head() const;
 
 	// Returns a copy of the Collection, except the first element
-	Collection<T> tail() const;
+	collection<T> tail() const;
 
 	// Applies a function to each element of the collection
 	void each(std::function<void(T)> f);
 
 	// Returns a subset of the collection, filtered by the given predicate
-	Collection<T> filter(std::function<bool(T)> f) const;
+	collection<T> filter(std::function<bool(T)> f) const;
 
 	// Returns the [begin, end) subset of the collection
-	Collection<T> slice(int begin, int end) const;
+	collection<T> slice(int begin, int end) const;
 
 	// Returns the number of elements for which the given predicate evaluates to true
 	int count(std::function<bool(T)> f) const;
 
 	// Returns a copy of the Collection, sorted according to the given predicate
-	Collection<T> sort(std::function<bool(T, T)> f) const;
+	collection<T> sort(std::function<bool(T, T)> f) const;
 
 	// Returns a new collection, as the result of the application of the given function
 	// to each element of the initial collection
 	template <typename Func>
-	Collection<typename std::result_of<Func(T)>::type>
+	collection<typename std::result_of<Func(T)>::type>
 	map(Func f) const;
 
 	// A concurrent implementation of map
 	template <typename Function>
-	Collection<typename std::result_of<Function(T)>::type>
+	collection<typename std::result_of<Function(T)>::type>
 	tmap(Function func, const int threads = kMaxThreads) const;
 
 	// Returns the result of the application of the binary operator on the Collection
@@ -157,27 +162,27 @@ class Collection
 };
 
 template <typename T>
-int Collection<T>::size() const
+int collection<T>::size() const
 {
   return _values.size();
 }
 
 template <typename T>
-T Collection<T>::head() const
+T collection<T>::head() const
 {
   return (_values.size() > 0) ? _values[0]
                               : throw std::runtime_error("Empty collection");
 }
 
 template <typename T>
-Collection<T> Collection<T>::tail() const
+collection<T> collection<T>::tail() const
 {
-  return (_values.size() > 0) ? Collection{_values.begin() + 1, _values.end()}
-                              : Collection{};
+  return (_values.size() > 0) ? collection{_values.begin() + 1, _values.end()}
+                              : collection{};
 }
 
 template <typename T>
-void Collection<T>::each(std::function<void(T)> f)
+void collection<T>::each(std::function<void(T)> f)
 {
   for (auto const& value : _values) {
     f(value);
@@ -185,7 +190,7 @@ void Collection<T>::each(std::function<void(T)> f)
 }
 
 template <typename T>
-Collection<T> Collection<T>::filter(std::function<bool(T)> f) const
+collection<T> collection<T>::filter(std::function<bool(T)> f) const
 {
   std::vector<T> values;
   for (auto const& value : _values) {
@@ -194,22 +199,22 @@ Collection<T> Collection<T>::filter(std::function<bool(T)> f) const
     }
   }
 
-  return Collection<T>{values};
+  return collection<T>{values};
 }
 
 template <typename T>
-Collection<T> Collection<T>::slice(int begin, int end) const
+collection<T> collection<T>::slice(int begin, int end) const
 {
   std::vector<T> values{end - begin};
   for (int i = 0; i < end - begin; ++i) {
     values[i] = _values[i + end];
   }
 
-  return Collection<T>(values);
+  return collection<T>(values);
 }
 
 template <typename T>
-int Collection<T>::count(std::function<bool(T)> f) const {
+int collection<T>::count(std::function<bool(T)> f) const {
   int count {0};
 
   for (auto const& value : _values) {
@@ -222,17 +227,17 @@ int Collection<T>::count(std::function<bool(T)> f) const {
 }
 
 template <typename T>
-Collection<T>  Collection<T>::sort(std::function<bool(T, T)> f) const {
+collection<T>  collection<T>::sort(std::function<bool(T, T)> f) const {
   std::vector<T> sorted{_values};
 
   std::sort(sorted.begin(), sorted.end(), f);
 
-  return Collection<T>{sorted};
+  return collection<T>{sorted};
 }
 
 template <typename T>
 template <typename Function>
-Collection<typename std::result_of<Function(T)>::type> Collection<T>::map(Function f) const {
+collection<typename std::result_of<Function(T)>::type> collection<T>::map(Function f) const {
   using return_type = typename std::result_of<Function(T)>::type;
   std::vector<return_type> values{_values.size()};
 
@@ -240,7 +245,7 @@ Collection<typename std::result_of<Function(T)>::type> Collection<T>::map(Functi
     values[i] = f(_values[i]);
   }
 
-  return Collection<return_type>(values);
+  return collection<return_type>(values);
 }
 
 template<typename T, typename Function>
@@ -252,8 +257,8 @@ void tmap_thread(int begin, int end, Function func, std::vector<T>& values) {
 
 template <typename T>
 template <typename Function>
-Collection<typename std::result_of<Function(T)>::type>
-Collection<T>::tmap(Function func, const int threads) const
+collection<typename std::result_of<Function(T)>::type>
+collection<T>::tmap(Function func, const int threads) const
 {
   std::vector<std::thread> thread_pool{ threads };
   const int chunk = _values.size() / threads;
@@ -279,11 +284,11 @@ Collection<T>::tmap(Function func, const int threads) const
     thread_pool[i].join();
   }
 
-  return Collection<T>{ values };
+  return collection<T>{ values };
 }
 
 template <typename T>
-T Collection<T>::reducel(std::function<T(T, T)> f) const
+T collection<T>::reducel(std::function<T(T, T)> f) const
 {
   if (_values.empty()) {
     throw std::runtime_error("Empty collection");
@@ -302,7 +307,7 @@ T Collection<T>::reducel(std::function<T(T, T)> f) const
 }
 
 template <typename T>
-T Collection<T>::reducer(std::function<T(T, T)> f) const {
+T collection<T>::reducer(std::function<T(T, T)> f) const {
   if (_values.empty()) {
     throw std::runtime_error("Empty collection");
   }
@@ -333,7 +338,7 @@ void treduce_thread(int tid, int begin, int end, std::function<T(T, T)> f,
 }
 
 template <typename T>
-T Collection<T>::treduce(std::function<T(T, T)> f, const int threads) const {
+T collection<T>::treduce(std::function<T(T, T)> f, const int threads) const {
 
   if (_values.empty()) {
     throw std::runtime_error("Collection is empty");
@@ -379,7 +384,7 @@ T Collection<T>::treduce(std::function<T(T, T)> f, const int threads) const {
 template <typename T>
 template <typename Function, typename I>
 typename std::result_of<Function(I, T)>::type
-Collection<T>::foldl(Function f, I init) const {
+collection<T>::foldl(Function f, I init) const {
   using return_type = typename std::result_of<Function(I, T)>::type;
   static_assert(std::is_same<return_type, I>::value,
       "Initial value and return value do not match");
@@ -403,7 +408,7 @@ Collection<T>::foldl(Function f, I init) const {
 template <typename T>
 template <typename Function, typename I>
 typename std::result_of<Function(I, T)>::type
-Collection<T>::foldr(Function f, I init) const {
+collection<T>::foldr(Function f, I init) const {
   using return_type = typename std::result_of<Function(I, T)>::type;
   static_assert(std::is_same<return_type, I>::value,
       "Initial value and return value do not match");
@@ -425,7 +430,7 @@ Collection<T>::foldr(Function f, I init) const {
 }
 
 template<typename T>
-void concat(std::vector<T>& values, Collection<T>& other, int& index) {
+void concat(std::vector<T>& values, collection<T>& other, int& index) {
   for (int i = 0; i < other.size(); ++i) {
     values[++index] = other[i];
   }
@@ -433,7 +438,7 @@ void concat(std::vector<T>& values, Collection<T>& other, int& index) {
 
 // Concatenates several Collections
 template<typename T, typename ...Collections>
-Collection<T> concat(Collection<T>& first, Collections... others) {
+collection<T> concat(collection<T>& first, Collections... others) {
 
   int size{ first.size() };
   int get_size[]{0, (size += others.size(), 0)...};
@@ -443,7 +448,7 @@ Collection<T> concat(Collection<T>& first, Collections... others) {
   concat(values, first, index);
   int concatenate[]{0, (concat(values, others, index), 0)...};
 
-  return Collection<T>(values);
+  return collection<T>(values);
 }
 
 }

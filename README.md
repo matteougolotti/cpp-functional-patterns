@@ -1,9 +1,9 @@
 C++ functional patterns
 ===
 
-This library aims at bringing some of the elegent syntax of functional programming languages such as Haskell, OCaml, Rust and Scala to C++.
+This library aims at bringing some of the elegent syntax of functional programming languages such as Haskell, OCaml and Scala to C++.
 
-To use it, just copy the header files and include them on your project.
+To use it just copy the header files and include them in your project.
 
 fp::collection
 ---
@@ -25,7 +25,11 @@ fp::colleciton<int> cl { l };
 
 // Iterator initialization
 std::set<int> s;
-fp::collection ci{ s.begin(), s.end() };
+fp::collection ci { s.begin(), s.end() };
+
+// Brace enclosed initializer list
+fp::collection c { 1, 2, 3, 4 };
+
 ```
 
 Higher order functions
@@ -88,9 +92,17 @@ std::string label = fp::match<Number, std::string>(number)
   >= TWO   > [] (Number n) -> std::string { return "Two"; }
   >= THREE > "Three"
   |          [] (Number n) -> std::string { throw InvalidValueException(); };
+
+// Fibonacci numbers
+int fib(int n) {
+  return fp::match<int, int>(n)
+    >= 0 > 1
+    >= 1 > 1
+    |      [] (int n) { return fib (n - 1) + fib (n - 2); };
+}
  
 ```
 
 Limitations
 ---
-This library is experimental, and provied as a prototype. Feel free to report any issue or suggestion for improvement.
+This library is experimental, and provided as a prototype. Feel free to report any issue or suggestion for improvement.
