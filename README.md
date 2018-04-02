@@ -1,7 +1,7 @@
 C++ functional patterns
 ===
 
-This library aims at bringing the elegent syntax of some functional programming patterns in languages such as Haskell, OCaml, Rust and Scala to C++.
+This library aims at bringing some of the elegent syntax of functional programming languages such as Haskell, OCaml, Rust and Scala to C++.
 
 To use it, just copy the header files and include them on your project.
 
