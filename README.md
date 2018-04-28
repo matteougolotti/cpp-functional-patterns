@@ -64,7 +64,7 @@ Pattern matching
 The library offers functional languages style pattern matching syntax based on values comparison.
 
 ```
-// Pattern mathing on primitive types
+// Pattern matching on primitive types
 int number { 3 };
 std::string label = fp::match<int, std::string>(number)
   >= 0 > "Zero"
@@ -74,7 +74,7 @@ std::string label = fp::match<int, std::string>(number)
   >= 4 > "Four"
   |      "Invalid number";
 
-// Pattern matching on enums with lazy evaluated lambdas
+// Pattern matching on enums with lambdas
 enum Number {
     ONE,
     TWO,
