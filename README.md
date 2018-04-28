@@ -12,23 +12,18 @@ The library provides a generic collection class, which exposes several higher or
 
 
 ```
-// Empty collection
-fp::collection<int> c{};
+fp::collection<int> c{};  // Empty collection
 
-// Vector initialization
 std::vector<int> v { 1, 2, 3 };
-fp::collection<int> cv { v };
+fp::collection<int> cv { v };  // Vector initialization
 
-// List initialization
 std::list<int> l { 1, 2, 3 };
-fp::colleciton<int> cl { l };
+fp::colleciton<int> cl { l };  // List initialization
 
-// Iterator initialization
 std::set<int> s;
-fp::collection ci { s.begin(), s.end() };
+fp::collection ci { s.begin(), s.end() };  // Iterator initialization
 
-// Brace enclosed initializer list
-fp::collection c { 1, 2, 3, 4 };
+fp::collection<int> c { 1, 2, 3, 4 };  // Brace enclosed initializer list
 
 ```
 
