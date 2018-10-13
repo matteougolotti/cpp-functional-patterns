@@ -74,19 +74,20 @@ std::string label = fp::match<int, std::string>(number)
   >= 4 > "Four"
   |      "Invalid number";
 
-// Pattern matching on enums with lambdas
+// Pattern matching with optionals
 enum Number {
-    ONE,
-    TWO,
-    THREE
-}
+  ONE,
+  TWO,
+  THREE
+};
 
-auto number = Number::TWO;
-std::string label = fp::match<Number, std::string>(number)
-  >= ONE   > "One"
-  >= TWO   > [] (Number n) -> std::string { return "Two"; }
-  >= THREE > "Three"
-  |          [] (Number n) -> std::string { throw InvalidValueException(); };
+std::optional<std::string> toString(Number n) {
+  return fp::match<Number, std::optional<std::string>>(n)
+    >= ONE   > std::optional<std::string>{"One"}
+    >= TWO   > std::optional<std::string>{"Two"}
+    >= THREE > std::optional<std::string>{"Three"}
+    |          std::nullopt;
+}
 
 // Fibonacci numbers
 int fib(int n) {
