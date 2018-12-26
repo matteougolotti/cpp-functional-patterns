@@ -154,19 +154,19 @@ class collection
 	// A concurrent implementation of map
 	template <typename Function>
 	collection<typename std::result_of<Function(T)>::type>
-	tmap(Function func, const unsigned long threads = kMaxThreads) const;
+	pmap(Function func, const unsigned long threads = kMaxThreads) const;
 
 	// Returns the result of the application of the binary operator on the Collection
 	// starting from the first element
 	// Throws if the collection is empty
-	T reducel(std::function<T(T, T)> f) const;
+	T reduce(std::function<T(T, T)> f) const;
 
 	// Returns the result of the application of the binary operator on the Collection
 	// starting from the last element
 	// Throws if the Collection is empty
-	T reducer(std::function<T(T, T)> f) const;
+	T rightreduce(std::function<T(T, T)> f) const;
 
-	// A concurrent implementation of reducel
+	// A concurrent implementation of reduce
 	// Operator f must be commutative for the result to be correct
 	// Throws if the Collection is empty
 	T treduce(std::function<T(T, T)> f, const unsigned long threads = kMaxThreads) const;
@@ -232,9 +232,11 @@ collection<T> collection<T>::filter(std::function<bool(T)> f) const
 template <typename T>
 collection<T> collection<T>::slice(int begin, int end) const
 {
-  std::vector<T> values{end - begin};
-  for (int i = 0; i < end - begin; ++i) {
-    values[i] = _values[i + end];
+  std::vector<T> values;
+  values.resize(end - begin);
+
+  for (int i = 0; i + begin < end; ++i) {
+    values[i] = _values[i + begin];
   }
 
   return collection<T>(values);
@@ -277,7 +279,7 @@ collection<typename std::result_of<Function(T)>::type> collection<T>::map(Functi
 }
 
 template<typename T, typename Function>
-void tmap_thread(int begin, int end, Function func, std::vector<T>& values) {
+void pmap_thread(int begin, int end, Function func, std::vector<T>& values) {
   for (int i = begin; i < end && i < values.size(); ++i) {
     values[i] = func(values[i]);
   }
@@ -286,13 +288,13 @@ void tmap_thread(int begin, int end, Function func, std::vector<T>& values) {
 template <typename T>
 template <typename Function>
 collection<typename std::result_of<Function(T)>::type>
-collection<T>::tmap(Function func, const unsigned long threads) const
+collection<T>::pmap(Function func, const unsigned long threads) const
 {
-  std::vector<std::thread> thread_pool{ threads };
-  const int chunk = _values.size() / threads;
-  const int extra = _values.size() - chunk*threads;
-  std::vector<int> indices{ extra, chunk+1 };
-  std::vector<int> normal{ threads-extra, chunk };
+  std::vector<std::thread> thread_pool(threads);
+  const unsigned long chunk = _values.size() / threads;
+  const unsigned long extra = _values.size() - chunk*threads;
+  std::vector<int> indices(extra, chunk + 1);
+  std::vector<int> normal(threads - extra, chunk);
   indices.insert(indices.end(), normal.begin(), normal.end());
   std::vector<T> values { _values };
 
@@ -302,7 +304,7 @@ collection<T>::tmap(Function func, const unsigned long threads) const
     int end = start + indices[i];
 
     thread_pool[i] = std::thread ([=, &values]() {
-      tmap_thread(start, end, func, values);
+      pmap_thread(start, end, func, values);
     });
 
     start = end;
@@ -316,7 +318,7 @@ collection<T>::tmap(Function func, const unsigned long threads) const
 }
 
 template <typename T>
-T collection<T>::reducel(std::function<T(T, T)> f) const
+T collection<T>::reduce(std::function<T(T, T)> f) const
 {
   if (_values.empty()) {
     throw std::runtime_error("Empty collection");
@@ -335,7 +337,7 @@ T collection<T>::reducel(std::function<T(T, T)> f) const
 }
 
 template <typename T>
-T collection<T>::reducer(std::function<T(T, T)> f) const {
+T collection<T>::rightreduce(std::function<T(T, T)> f) const {
   if (_values.empty()) {
     throw std::runtime_error("Empty collection");
   }
