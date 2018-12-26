@@ -50,6 +50,21 @@ namespace fp::test {
     ASSERT_EQ(v[2], c[2]);
   }
 
+  TEST(Collections, Head) {
+    fp::collection<char> c{ 'a', 'b', 'c' };
+
+    ASSERT_EQ(c[0], c.head());
+  }
+
+  TEST(Collections, Tail) {
+    fp::collection<char> c{ 'a', 'b', 'c' };
+    const auto t = c.tail();
+
+    ASSERT_EQ(c.size() - 1, t.size());
+    ASSERT_EQ(c[1], t[0]);
+    ASSERT_EQ(c[2], t[1]);
+  }
+
   TEST(Collections, Map) {
     fp::collection<int> c{ 1, 2, 3 };
 
