@@ -1,3 +1,29 @@
+/* 
+
+MIT License
+
+Copyright (c) 2018 Matteo Ugolotti
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+*/
+
 #pragma once
 
 #include <algorithm>
@@ -39,8 +65,9 @@ class collection
 	}
 
 	// Builds a collection from iterators
-	collection<T>(std::iterator<std::input_iterator_tag, int> const& begin,
-	              std::iterator<std::input_iterator_tag, int> const& end) :
+  template <class Iterator>
+	collection<T>(Iterator begin,
+	              Iterator end) :
 	  _values{begin, end} {
 	}
 
@@ -127,7 +154,7 @@ class collection
 	// A concurrent implementation of map
 	template <typename Function>
 	collection<typename std::result_of<Function(T)>::type>
-	tmap(Function func, const int threads = kMaxThreads) const;
+	tmap(Function func, const unsigned long threads = kMaxThreads) const;
 
 	// Returns the result of the application of the binary operator on the Collection
 	// starting from the first element
@@ -142,7 +169,7 @@ class collection
 	// A concurrent implementation of reducel
 	// Operator f must be commutative for the result to be correct
 	// Throws if the Collection is empty
-	T treduce(std::function<T(T, T)> f, const int threads = kMaxThreads) const;
+	T treduce(std::function<T(T, T)> f, const unsigned long threads = kMaxThreads) const;
 
 	// Returns the result of the application of a binary operator on
 	// all elements in the Collection from a given initial value, starting
@@ -239,7 +266,8 @@ template <typename T>
 template <typename Function>
 collection<typename std::result_of<Function(T)>::type> collection<T>::map(Function f) const {
   using return_type = typename std::result_of<Function(T)>::type;
-  std::vector<return_type> values{_values.size()};
+  std::vector<return_type> values;
+  values.resize(_values.size());
 
   for (int i = 0; i < _values.size(); ++i) {
     values[i] = f(_values[i]);
@@ -258,7 +286,7 @@ void tmap_thread(int begin, int end, Function func, std::vector<T>& values) {
 template <typename T>
 template <typename Function>
 collection<typename std::result_of<Function(T)>::type>
-collection<T>::tmap(Function func, const int threads) const
+collection<T>::tmap(Function func, const unsigned long threads) const
 {
   std::vector<std::thread> thread_pool{ threads };
   const int chunk = _values.size() / threads;
@@ -338,7 +366,7 @@ void treduce_thread(int tid, int begin, int end, std::function<T(T, T)> f,
 }
 
 template <typename T>
-T collection<T>::treduce(std::function<T(T, T)> f, const int threads) const {
+T collection<T>::treduce(std::function<T(T, T)> f, const unsigned long threads) const {
 
   if (_values.empty()) {
     throw std::runtime_error("Collection is empty");
