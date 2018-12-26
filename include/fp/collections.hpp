@@ -169,7 +169,7 @@ class collection
 	// A concurrent implementation of reduce
 	// Operator f must be commutative for the result to be correct
 	// Throws if the Collection is empty
-	T treduce(std::function<T(T, T)> f, const unsigned long threads = kMaxThreads) const;
+	T preduce(std::function<T(T, T)> f, const unsigned long threads = kMaxThreads) const;
 
 	// Returns the result of the application of a binary operator on
 	// all elements in the Collection from a given initial value, starting
@@ -177,7 +177,7 @@ class collection
 	// Throws if the Collection is empty
 	template <typename Function, typename I>
 	typename std::result_of<Function(I, T)>::type
-	foldl(Function f, I init) const;
+	fold(Function f, I init) const;
 
 	// Returns the result of the application of a binary operator on
 	// all elements in the Collection from a given initial value, starting
@@ -186,6 +186,8 @@ class collection
 	template <typename Function, typename I>
 	typename std::result_of<Function(I, T)>::type
 	foldr(Function f, I init) const;
+
+  collection<T> concat(const collection<T>&) const;
 };
 
 template <typename T>
@@ -354,9 +356,9 @@ T collection<T>::rightreduce(std::function<T(T, T)> f) const {
   return value;
 }
 
-template<typename T>
-void treduce_thread(int tid, int begin, int end, std::function<T(T, T)> f,
-                    std::vector<T>& values, std::vector<T>& results) {
+/* template<typename T>
+void preduce_thread(int tid, int begin, int end, std::function<T(T, T)> f,
+                    const std::vector<T>& values, std::vector<T>& results) {
 
     T value = f(values[begin], values[begin + 1]);
 
@@ -368,19 +370,19 @@ void treduce_thread(int tid, int begin, int end, std::function<T(T, T)> f,
 }
 
 template <typename T>
-T collection<T>::treduce(std::function<T(T, T)> f, const unsigned long threads) const {
+T collection<T>::preduce(std::function<T(T, T)> f, const unsigned long threads) const {
 
   if (_values.empty()) {
     throw std::runtime_error("Collection is empty");
   }
 
-  std::vector<std::thread> thread_pool{ threads };
-  std::vector<T> results{ threads };
+  std::vector<std::thread> thread_pool(threads);
+  std::vector<T> results(threads);
 
   const int chunk = _values.size() / threads;
-  const int extra = _values.size() - chunk*threads;
-  std::vector<int> indices{ extra, chunk+1 };
-  std::vector<int> normal{ threads-extra, chunk };
+  const int extra = _values.size() - chunk * threads;
+  std::vector<int> indices(extra, chunk + 1);
+  std::vector<int> normal(threads - extra, chunk);
 
   indices.insert(indices.end(), normal.begin(), normal.end());
 
@@ -390,7 +392,7 @@ T collection<T>::treduce(std::function<T(T, T)> f, const unsigned long threads) 
     int end{ start + indices[i] };
 
     thread_pool[i] = std::thread ([=, &results]() {
-      treduce_thread(i, start, end, f, _values, results);
+      preduce_thread(i, start, end, f, _values, results);
     });
 
     start = end;
@@ -409,12 +411,12 @@ T collection<T>::treduce(std::function<T(T, T)> f, const unsigned long threads) 
   }
 
   return value;
-}
+} */
 
 template <typename T>
 template <typename Function, typename I>
 typename std::result_of<Function(I, T)>::type
-collection<T>::foldl(Function f, I init) const {
+collection<T>::fold(Function f, I init) const {
   using return_type = typename std::result_of<Function(I, T)>::type;
   static_assert(std::is_same<return_type, I>::value,
       "Initial value and return value do not match");
@@ -427,7 +429,7 @@ collection<T>::foldl(Function f, I init) const {
     return _values[0];
   }
 
-  return_type val = func(init, _values[0]);
+  return_type val = f(init, _values[0]);
   for (int i = 1; i < _values.size(); ++i) {
     val = f(val, _values[i]);
   }
@@ -459,24 +461,22 @@ collection<T>::foldr(Function f, I init) const {
   return value;
 }
 
-template<typename T>
-void concat(std::vector<T>& values, collection<T>& other, int& index) {
-  for (int i = 0; i < other.size(); ++i) {
-    values[++index] = other[i];
+template <typename T>
+collection<T>
+collection<T>::concat(const collection<T>& c) const {
+  const auto firstSize = _values.size();
+  const auto secondSize = c.size();
+  const auto totalSize = firstSize + secondSize;
+
+  std::vector<T> values(totalSize);
+
+  for (auto i{0}; i < firstSize; ++i) {
+    values[i] = _values[i];
   }
-}
 
-// Concatenates several Collections
-template<typename T, typename ...Collections>
-collection<T> concat(collection<T>& first, Collections... others) {
-
-  int size{ first.size() };
-  int get_size[]{0, (size += others.size(), 0)...};
-  std::vector<T> values(size);
-
-  int index = 0;
-  concat(values, first, index);
-  int concatenate[]{0, (concat(values, others, index), 0)...};
+  for (auto i{0}; i < secondSize; ++i) {
+    values[firstSize + i] = c[i];
+  }
 
   return collection<T>(values);
 }

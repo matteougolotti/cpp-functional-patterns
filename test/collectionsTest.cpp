@@ -143,4 +143,48 @@ namespace fp::test {
     ASSERT_EQ(6, sum);
   }
 
+  TEST(Collections, Rightreduce) {
+    fp::collection<int> c{ 1, 2, 3 };
+
+    const auto sum = c.rightreduce(std::plus<int>());
+
+    ASSERT_EQ(6, sum);
+  }
+
+  /* TEST(Collections, Preduce) {
+    fp::collection<int> c{ 1, 2, 3 };
+
+    const auto sum = c.preduce(std::plus<int>());
+
+    ASSERT_EQ(6, sum);
+  } */
+
+  TEST(Collections, Fold) {
+    fp::collection<int> c{ 1, 2, 3 };
+
+    const auto res = c.fold(std::plus<int>(), 4);
+
+    ASSERT_EQ(10, res);
+  }
+
+  TEST(Collections, Foldr) {
+    fp::collection<int> c{ 1, 2, 3 };
+
+    const auto res = c.foldr(std::plus<int>(), 4);
+
+    ASSERT_EQ(10, res);
+  }
+
+  TEST(Collections, Concat) {
+    fp::collection<int> a{ 1 };
+    fp::collection<int> b{ 2, 3 };
+
+    const auto c = a.concat(b);
+
+    ASSERT_EQ(a.size() + b.size(), c.size());
+    ASSERT_EQ(a[0], c[0]);
+    ASSERT_EQ(b[0], c[1]);
+    ASSERT_EQ(b[1], c[2]);
+  }
+
 }
