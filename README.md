@@ -101,6 +101,15 @@ int fib(int n) {
  
 ```
 
+Run tests (requires Google Test)
+---
+```
+cd test
+g++ -std=c++17 -stdlib=libc++  test/collectionsTest.cpp patternsTest.cpp main.cpp  -lgtest -lpthread -o main
+./main
+```
+
+
 Limitations
 ---
 This library is experimental, and provided as a prototype. Feel free to report any issue or suggestion for improvement.
