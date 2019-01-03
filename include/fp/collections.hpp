@@ -166,11 +166,6 @@ class collection
 	// Throws if the Collection is empty
 	T rightreduce(std::function<T(T, T)> f) const;
 
-	// A concurrent implementation of reduce
-	// Operator f must be commutative for the result to be correct
-	// Throws if the Collection is empty
-	T preduce(std::function<T(T, T)> f, const unsigned long threads = kMaxThreads) const;
-
 	// Returns the result of the application of a binary operator on
 	// all elements in the Collection from a given initial value, starting
 	// from the first element
