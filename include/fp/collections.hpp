@@ -356,63 +356,6 @@ T collection<T>::rightreduce(std::function<T(T, T)> f) const {
   return value;
 }
 
-/* template<typename T>
-void preduce_thread(int tid, int begin, int end, std::function<T(T, T)> f,
-                    const std::vector<T>& values, std::vector<T>& results) {
-
-    T value = f(values[begin], values[begin + 1]);
-
-    for (int i = begin + 2; i < end && i < values.size(); ++i) {
-        value = f(value, values[i]);
-    }
-
-    results[tid] = value;
-}
-
-template <typename T>
-T collection<T>::preduce(std::function<T(T, T)> f, const unsigned long threads) const {
-
-  if (_values.empty()) {
-    throw std::runtime_error("Collection is empty");
-  }
-
-  std::vector<std::thread> thread_pool(threads);
-  std::vector<T> results(threads);
-
-  const int chunk = _values.size() / threads;
-  const int extra = _values.size() - chunk * threads;
-  std::vector<int> indices(extra, chunk + 1);
-  std::vector<int> normal(threads - extra, chunk);
-
-  indices.insert(indices.end(), normal.begin(), normal.end());
-
-  int start = 0;
-
-  for (int i = 0; i < threads; ++i) {
-    int end{ start + indices[i] };
-
-    thread_pool[i] = std::thread ([=, &results]() {
-      preduce_thread(i, start, end, f, _values, results);
-    });
-
-    start = end;
-  }
-
-  for (int i = 0; i < thread_pool.size(); ++i) {
-    thread_pool[i].join();
-  }
-
-  T value{ results[0] };
-  if (results.size() > 1) {
-    T value = f(results[0], results[1]);
-    for (int i = 2; i < results.size(); ++i) {
-      value = f(value, results[i]);
-    }
-  }
-
-  return value;
-} */
-
 template <typename T>
 template <typename Function, typename I>
 typename std::result_of<Function(I, T)>::type

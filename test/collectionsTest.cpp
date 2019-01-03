@@ -151,14 +151,6 @@ namespace fp::test {
     ASSERT_EQ(6, sum);
   }
 
-  /* TEST(Collections, Preduce) {
-    fp::collection<int> c{ 1, 2, 3 };
-
-    const auto sum = c.preduce(std::plus<int>());
-
-    ASSERT_EQ(6, sum);
-  } */
-
   TEST(Collections, Fold) {
     fp::collection<int> c{ 1, 2, 3 };
 
